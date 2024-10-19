@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import StarRating from "./components/StarRating";
 
 const average = (arr) =>
@@ -9,18 +9,10 @@ const KEY = "e5398031";
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
-  // const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
-  // const [watched, setWatched] = useState(() =>
-  //   JSON.parse(localStorage.getItem("watched"))
-  // );
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (selectedId === id ? null : id));
@@ -32,13 +24,30 @@ export default function App() {
 
   function handleAddWatched(movie) {
     setWatched((watched) => [...watched, movie]);
-
-    // localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
 
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
+
+  /*
+  useEffect(function () {
+    console.log("After initial render");
+  }, []);
+
+  useEffect(function () {
+    console.log("After every render");
+  });
+
+  useEffect(
+    function () {
+      console.log("With the change of query state");
+    },
+    [query]
+  );
+
+  console.log("During render");
+  */
 
   useEffect(
     function () {
@@ -85,13 +94,6 @@ export default function App() {
       };
     },
     [query]
-  );
-
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
   );
 
   return (
@@ -176,30 +178,6 @@ function Logo() {
 }
 
 function Search({ query, setQuery }) {
-  const inputEl = useRef(null);
-
-  useEffect(
-    function () {
-      function callback(e) {
-        if (document.activeElement === inputEl.current) return;
-
-        if (e.code === "Enter") {
-          inputEl.current.focus();
-          setQuery("");
-        }
-      }
-      document.addEventListener("keydown", callback);
-      return () => document.removeEventListener("keydown", callback);
-    },
-    [setQuery]
-  );
-
-  // useEffect(function () {
-  //   const el = document.querySelector(".search");
-  // console.log(el);
-  //   el.focus();
-  // }, []);
-
   return (
     <input
       className="search"
@@ -207,7 +185,6 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
-      ref={inputEl}
     />
   );
 }
@@ -299,15 +276,6 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState(0);
 
-  const countRef = useRef(0);
-
-  useEffect(
-    function () {
-      if (userRating) countRef.current++;
-    },
-    [userRating]
-  );
-
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId
@@ -326,29 +294,6 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
     Genre: genre,
   } = movie;
 
-  // Hooks has to be SAME (in Count & Order) for EVERY Render
-  // --------------------------------------------------------
-  // if (imdbRating > 8) [isTop, setIsTop] = useState(true);
-  // if (imdbRating > 8) return <p>Greatest Ever</p>;
-
-  // The VALUE we put in useState() function, only matters in INITIAL Render
-  // -----------------------------------------------------------------------
-  // const [isTop, setIsTop] = useState(imdbRating > 8);
-  // console.log(isTop);
-  // useEffect(
-  //   function () {
-  //     setIsTop(imdbRating > 8);
-  //   },
-  //   [imdbRating]
-  // );
-  // SOLUTION (DERIVED State)
-  // const isTop = imdbRating > 8; // DERIVED State
-  // console.log(isTop);
-
-  // State Update is ASYNCRONOUS
-  // ---------------------------
-  // Use a CALLBACK Function during State UPDATE (state update based on previous state)
-
   function handleAdd() {
     const newWatchedMovie = {
       imdbID: selectedId,
@@ -358,7 +303,6 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
-      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
@@ -419,20 +363,7 @@ function MovieDetails({ selectedId, watched, onCloseMovie, onAddWatched }) {
         <>
           <header>
             <button className="btn-back" onClick={onCloseMovie}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.65}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18"
-                />
-              </svg>
+              &larr;
             </button>
             <img src={poster} alt={`Poster of ${title}`} />
             <div className="details-overview">
