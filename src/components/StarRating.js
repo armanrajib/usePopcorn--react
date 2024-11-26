@@ -55,7 +55,7 @@ export default function StarRating({
     margin: "0",
     lineHight: "1",
     color,
-    fontSize: `${size / 1.2}px`,
+    fontSize: `${size / 1.39}px`,
   };
 
   return (
